@@ -14,9 +14,9 @@ fullnameOverride: ""
 ##### ipo connector Daemonset values #####
 # Container image details
 image:
-  repository: "ghcr.io/goodbytz/souz-ipo-connector-preview"
-  # tag: "pr54"
-  digest: "ghcr.io/goodbytz/souz-ipo-connector:v0.3.4@sha256:a1defebf263892c7853a0c314906bd84a3b40b0bd5c1acb9ee480dcb026873dd"
+  repository: "ghcr.io/goodbytz/souz-ipo-connector:v0.3.4"
+  # tag: "v0.3.4"
+  digest: "sha256:a1defebf263892c7853a0c314906bd84a3b40b0bd5c1acb9ee480dcb026873dd"
   pullPolicy: IfNotPresent
 # Image pull secrets
 imagePullSecrets: "dockerconfigjson-harbor"
