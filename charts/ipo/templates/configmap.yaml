@@ -1,0 +1,430 @@
+{{- $configmap := $.Values.configmap }}
+{{- if $configmap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ipo.fullname" . }}-config
+  namespace: {{ include "ipo.namespace" . }}
+  labels:
+    {{- include "ipo.labels" . | nindent 4 }}
+    {{- if $configmap.labels }}
+    {{- toYaml $configmap.labels | nindent 4 }}
+    {{- end }}
+    {{- if .Values.global.labels }}
+    {{- toYaml .Values.global.labels | nindent 4 }}
+    {{- end }}
+data:
+  {{ include "ipo.nthConfigMapKey" (dict "Values" .Values "n" 0) }}: | 
+
+    {{- with $configmap }}
+    {{- if .server.enabled }}
+    server:
+      {{- if include "exists" (list .server "server_port") }}
+      server_port: {{ .server.server_port }}
+      {{- end }}
+      {{- if include "exists" (list .server "application_server_name") }}
+      application_server_name: {{ .server.application_server_name | quote }}
+      {{- end }}
+      {{- if include "exists" (list .server "build_info_software_version") }}
+      build_info_software_version: {{ .server.build_info_software_version | quote }}
+      {{- end }}
+      {{- if include "exists" (list .server "connector_namespace") }}
+      connector_namespace: {{ .server.connector_namespace | quote }}
+      {{- end }}
+      {{- if .server.plugins }}
+      plugins:
+      {{- range $plugin, $enabled := $configmap.server.plugins }}
+      {{- if $enabled }}
+        - {{ $plugin }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if .ipo.enabled }}
+
+    {{- if $.Values.systemType | eq "compact-box" }}
+    {{- if include "exists" (list . "boxes") }}
+    {{ range $boxName, $boxConfig := .boxes }}
+    {{- if $boxConfig.enabled }}
+    {{ $boxName }}:
+      {{- if hasKey $boxConfig "display_name" }} 
+      display_name: {{ $boxConfig.display_name | quote }}
+      {{- end }}
+      {{- if hasKey $boxConfig "browse_name" }} 
+      browse_name: {{ $boxConfig.browse_name | quote }}
+      {{- end }}
+      {{- if hasKey $boxConfig "device_type" }} 
+      device_type: {{ $boxConfig.device_type | quote }}
+      {{- end }}
+      {{- if hasKey $boxConfig "interface_type" }}
+      interface_type: {{ $boxConfig.interface_type }}
+      {{- else }}
+      interface_type: {{ $.Values.configmap.serving_box_interface }}
+      {{- end }}
+      {{- if hasKey $boxConfig "asset_id" }}
+      asset_id: {{ $boxConfig.asset_id | quote }}
+      {{- end }}
+      {{- if hasKey $boxConfig "component_name" }}
+      component_name: {{ $boxConfig.component_name }}
+      {{- end }}
+      {{- if hasKey $boxConfig "interface_config" }}
+      interface_config:
+        can_node_id: {{ $boxConfig.interface_config.can_node_id }}
+      {{- end }}
+      {{- end }}
+
+      {{- if and (hasKey $boxConfig "state_machine_config") $boxConfig.state_machine_config }}
+      state_machine_config:
+        {{- if hasKey $boxConfig.state_machine_config "auto_close_after_serving_empty" }}
+        auto_close_after_serving_empty: {{ $boxConfig.state_machine_config.auto_close_after_serving_empty }}
+        {{- else }}
+        auto_close_after_serving_empty: {{ $.Values.configmap.auto_close_after_serving_empty }}
+        {{- end }}
+        {{- if hasKey $boxConfig.state_machine_config "timeout_home_door" }}
+        timeout_home_door: {{ $boxConfig.state_machine_config.timeout_home_door }}
+        {{- else }}
+        timeout_home_door: {{ $.Values.configmap.homing_timeout }}
+        {{- end }}
+      {{- else }}
+      state_machine_config:
+        auto_close_after_serving_empty: {{ $.Values.configmap.auto_close_after_serving_empty }}
+        timeout_home_door: {{ $.Values.configmap.homing_timeout }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+
+
+    {{- if (eq $.Values.systemType "compact-box") }}
+    {{ include "ipo.bowlDispenser" $ | nindent 4 }}
+    {{- end }}
+
+    ipo:
+      {{- if include "exists" (list .ipo "browse_name") }}
+      browse_name: {{ .ipo.browse_name | quote }}
+      {{- end }}
+      {{- if include "exists" (list .ipo "display_name") }}
+      display_name: {{ .ipo.display_name | quote }}
+      {{- end }}
+      {{- if include "exists" (list .ipo "device_type") }}
+      device_type: {{ .ipo.device_type | quote }}
+      {{- end }}
+      {{- if include "exists" (list .ipo "asset_id") }}
+      asset_id: {{ .ipo.asset_id | quote }}
+      {{- end }}
+      {{- if include "exists" (list .ipo "component_name") }}
+      component_name: {{ .ipo.component_name | quote }}
+      {{- end }}
+      {{- if include "exists" (list .ipo "serving_option") }}
+      serving_option: {{ .ipo.serving_option | quote }}
+      {{- end }}
+      {{- if include "exists" (list .ipo "incoming_pot_pick_up_positions") }}
+      incoming_pot_pick_up_positions:
+        {{- range $key, $value := .ipo.incoming_pot_pick_up_positions }}
+        {{- if $value }}
+        - {{ $key }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if include "exists" (list .ipo "pot_handling") }}
+      {{- if .ipo.pot_handling }}
+      pot_handling:
+        {{- if include "exists" (list .ipo.pot_handling "bowl_needs_be_dispensed_before_pour_out") }}
+        bowl_needs_be_dispensed_before_pour_out: {{ .ipo.pot_handling.bowl_needs_be_dispensed_before_pour_out }}
+        {{- end }}
+        {{- if .ipo.pot_handling.self_serving.enabled }}
+        {{- if include "exists" (list .ipo.pot_handling "self_serving") }}
+        self_serving:
+          {{- if include "exists" (list .ipo.pot_handling.self_serving "host") }}
+          host: {{ .ipo.pot_handling.self_serving.host | quote }}
+          {{- end }}
+          {{- if include "exists" (list .ipo.pot_handling.self_serving "port") }}
+          port: {{ .ipo.pot_handling.self_serving.port }}
+          {{- end }}
+          {{- if include "exists" (list .ipo.pot_handling.self_serving "retry_pause_seconds") }}
+          retry_pause_seconds: {{ .ipo.pot_handling.self_serving.retry_pause_seconds }}
+          {{- end }}
+          {{- if include "exists" (list .ipo.pot_handling.self_serving "max_retries") }}
+          max_retries: {{ .ipo.pot_handling.self_serving.max_retries }}
+          {{- end }}
+          {{- if include "exists" (list .ipo.pot_handling.self_serving "randomly_select_serving_box") }}
+          randomly_select_serving_box: {{ .ipo.pot_handling.self_serving.randomly_select_serving_box }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+
+      robot:
+        {{- if .ipo.robot.display_name }}
+        display_name: {{ .ipo.robot.display_name | quote }}
+        {{- end }}
+        {{- if .ipo.robot.browse_name }}
+        browse_name: {{ .ipo.robot.browse_name | quote }}
+        {{- end }}
+        {{- if .ipo.robot.device_type }}
+        device_type: {{ .ipo.robot.device_type | quote }}
+        {{- end }}
+        {{- if .ipo.robot.asset_id }}
+        asset_id: {{ .ipo.robot.asset_id | quote }}
+        {{- end }}
+        {{- if .ipo.robot.component_name }}
+        component_name: {{ .ipo.robot.component_name | quote }}
+        {{- end }}
+        {{- if .ipo.robot.interface_type }}
+        interface_type: {{ .ipo.robot.interface_type | quote }}
+        {{- end }}
+        {{- if .ipo.robot.port }}
+        port: {{ .ipo.robot.port }}
+        {{- end }}
+        {{- if .ipo.robot.endpoint }}
+        endpoint: {{ .ipo.robot.endpoint }}
+        {{- end }}
+        {{- if .ipo.robot.recovery_speed }}
+        recovery_speed: {{ .ipo.robot.recovery_speed }}
+        {{- end }}
+        {{- if .ipo.robot.max_speed_override }}
+        max_speed_override: {{ .ipo.robot.max_speed_override }}
+        {{- end }}
+        {{- if .ipo.robot.allowed_probing_positions }}
+        allowed_probing_positions:
+        {{- range $pos, $enabled := .ipo.robot.allowed_probing_positions }}
+        {{- if $enabled }}
+          - {{ $pos }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+
+        {{- if .ipo.robot.home.enabled }}
+        home:
+          {{- if .ipo.robot.home.home1.enabled }}
+          home1: # HOME
+            nominal: {{ .ipo.robot.home.home1.nominal | toJson | replace "," ", " }}
+            max: {{ .ipo.robot.home.home1.max | toJson | replace "," ", " }}
+            prog: {{ .ipo.robot.home.home1.prog | quote | replace "," ", " }}
+          {{- end }}
+        {{- end }}
+
+        robot_prog_settings:
+          {{- $robot_prog_settings := .ipo.robot.robot_prog_settings }}
+          {{- range $order := keys $robot_prog_settings | sortAlpha }}
+          {{- $settings := index $robot_prog_settings $order }}
+          {{- if eq $settings.enabled true }}
+          '{{ $settings.name }}':
+            {{- if $settings.recovery }}
+            recovery: {{ $settings.recovery | toJson }}
+            {{- end }}
+            safe_to_resume: {{ if hasKey $settings "safe_to_resume" }}{{ $settings.safe_to_resume }}{{ else }}true{{ end }}
+            safe_to_home_with_pot: {{ if hasKey $settings "safe_to_home_with_pot" }}{{ $settings.safe_to_home_with_pot }}{{ else }}false{{ end }}
+            {{- if hasKey $settings "max_ovrd" }}
+            max_ovrd: {{ $settings.max_ovrd }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+
+        {{- if include "exists" (list .ipo.robot "prog_result_codes") }}
+        prog_result_codes:
+          {{- range $prog, $code := .ipo.robot.prog_result_codes }}
+          {{ $prog }}: {{ $code }}
+          {{- end }}
+        {{- end }}
+        {{- if include "exists" (list .ipo.robot "frame_map") }}
+        frame_map:
+        {{- range $sectionName, $sectionMap := .ipo.robot.frame_map }}
+          {{- if $sectionMap }}
+          {{ $sectionName }}:
+          {{- range $slot, $value := $sectionMap }}
+            {{- if $value }}
+              {{ $slot }}: {{ $value }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+
+      {{- $shelves := .ipo.shelves }}
+      {{- range $order := keys $shelves | sortAlpha }}
+      {{- $shelf := index $shelves $order }}
+      {{- if hasKey $shelf "enabled" | ternary $shelf.enabled true }}
+      {{ $shelf.name }}:
+        display_name: {{ $shelf.display_name | quote }}
+        device_type: {{ $shelf.device_type | quote }}
+        interface_type: {{ $shelf.interface_type | default $.Values.configmap.pot_interface | quote }}
+        asset_id: {{ $shelf.asset_id | quote }}
+        component_name: {{ $shelf.component_name | quote }}
+        can_id: {{ include "ipo.decimalToHex" $shelf.can_id }}
+        pickup_strategy: {{ $shelf.pickup_strategy | quote }}
+        receive_strategy: {{ $shelf.receive_strategy | quote }}
+        blocking_check_interval: {{ $shelf.blocking_check_interval }}
+        slot_name_prefix: {{ $shelf.slot_name_prefix | quote }}
+        prepare_to_receive:
+          enable_pot_position_return: {{ $shelf.prepare_to_receive.enable_pot_position_return }}
+        prepare_for_pickup:
+          enable_pot_position_return: {{ $shelf.prepare_for_pickup.enable_pot_position_return }}
+        blocking: {{ $shelf.blocking }}
+        {{- if hasKey $shelf "position_update_delay" }}
+        position_update_delay: {{ $shelf.position_update_delay }}
+        {{- end }}
+        slots:
+          {{- $slots := $shelf.slots }}
+          {{- range $slotName := keys $slots | sortAlpha }}
+          {{- $slot := index $slots $slotName }}
+          {{- if hasKey $slot "enabled" | ternary $slot.enabled true }}
+          - name: {{ $slotName | quote }}
+            io_link: {{ $slot.io_link }}
+          {{- end }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      
+      {{- if .ipo.dishwasher.enabled }}
+      dishwasher:
+        {{- if .ipo.dishwasher.endpoint }}
+        endpoint: {{ .ipo.dishwasher.endpoint | quote }} 
+        {{- end }}
+        {{- if hasKey .ipo.dishwasher "skip_wash_when_resetting" }}
+        skip_wash_when_resetting: {{ .ipo.dishwasher.skip_wash_when_resetting }}
+        {{- end }}
+        {{- if .ipo.dishwasher.device_type }}
+        device_type: {{ .ipo.dishwasher.device_type | quote }}
+        {{- end }}
+        {{- if .ipo.dishwasher.interface_type }}
+        interface_type: {{ .ipo.dishwasher.interface_type | quote }}
+        {{- end }}
+        {{- if hasKey .ipo.dishwasher "t_auo_wash" }}
+        t_auo_wash: {{ .ipo.dishwasher.t_auo_wash }}
+        {{- end }}
+        {{- if hasKey .ipo.dishwasher "t_auto_close_hood" }}
+        t_auto_close_hood: {{ .ipo.dishwasher.t_auto_close_hood }}
+        {{- end }}
+      {{- end }}
+
+      {{- if $.Values.systemType | eq "compact" }}
+      {{include "ipo.bowlDispenser" $ | nindent 6 }}
+      {{- end }}
+
+      {{- if .ipo.serving_conveyor_output.enabled }}
+      serving_conveyor_output:
+        display_name: {{ .ipo.serving_conveyor_output.display_name | quote }}
+        device_type: {{ .ipo.serving_conveyor_output.device_type | quote }}
+        asset_id: {{ .ipo.serving_conveyor_output.asset_id | quote }}
+        component_name: {{ .ipo.serving_conveyor_output.component_name | quote }}
+        interface_type: {{ .ipo.serving_conveyor_output.interface_type | default $.Values.configmap.serving_conveyor_interface | quote }}
+        state_machine:
+          {{- if hasKey .ipo.serving_conveyor_output.state_machine "wait_for_refill_when_empty" }}
+          wait_for_refill_when_empty: {{ .ipo.serving_conveyor_output.state_machine.wait_for_refill_when_empty }}
+          {{- end }}
+          {{- if hasKey .ipo.serving_conveyor_output.state_machine "use_delay_to_move_bowl_to_output" }}
+          use_delay_to_move_bowl_to_output: {{ .ipo.serving_conveyor_output.state_machine.use_delay_to_move_bowl_to_output }}
+          {{- end }}
+          {{- if hasKey .ipo.serving_conveyor_output.state_machine "delay_for_moving_bowl_to_output" }}
+          delay_for_moving_bowl_to_output: {{ include "ipo.formatFloat" .ipo.serving_conveyor_output.state_machine.delay_for_moving_bowl_to_output }}
+          {{- end }}
+          {{- if hasKey .ipo.serving_conveyor_output.state_machine "conveying_timeout_serving" }}
+          conveying_timeout_serving: {{ include "ipo.formatFloat" .ipo.serving_conveyor_output.state_machine.conveying_timeout_serving }}
+          {{- end }}
+        {{- end }}
+
+        {{- if .ipo.serving_conveyor_output.middle_conveyor.enabled }}
+        middle_conveyor:
+          name: {{ .ipo.serving_conveyor_output.middle_conveyor.name | quote }}
+          can_node_id: {{ .ipo.serving_conveyor_output.middle_conveyor.can_node_id }}
+          motor_direction: {{ .ipo.serving_conveyor_output.middle_conveyor.motor_direction }}
+        {{- end }}
+
+        {{- if .ipo.serving_conveyor_output.conveyor_gate.enabled }}
+        conveyor_gate:
+          can_node_id: {{ .ipo.serving_conveyor_output.conveyor_gate.can_node_id }}
+          target_speed: {{ .ipo.serving_conveyor_output.conveyor_gate.target_speed }}
+          target_position: {{ .ipo.serving_conveyor_output.conveyor_gate.target_position }}
+          stepper:
+            invert_direction: {{ .ipo.serving_conveyor_output.conveyor_gate.stepper.invert_direction }}
+        {{- end }}
+
+    {{- end }}
+    {{- end }}
+
+  ##### Logging Configuration #####
+
+  {{ include "ipo.nthConfigMapKey" (dict "Values" .Values "n" 1) }}: |
+
+    {{- with $configmap.logging }}
+
+    [loggers]
+    keys={{ .loggers.keys | join ", " }}
+    [handlers]
+    keys={{ .handlers.keys | join ", " }}
+    [formatters]
+    keys={{ .formatters.keys | join ", " }}
+      
+    ## Logger Settings
+    {{- range $logger := .loggers.keys }}
+    [logger_{{ $logger }}]
+    {{- $cfg := index $configmap.logging.logger_config (printf "logger_%s" $logger) }}
+
+    {{- if and (hasKey $cfg "level") (ne $cfg.level "") }}
+    level={{ $cfg.level }}
+    {{- end }}
+    {{- if and (hasKey $cfg "handlers") (ne (len $cfg.handlers) 0) }}
+    handlers={{ $cfg.handlers | join ", " }}
+    {{- end }}
+    {{- if and (hasKey $cfg "qualname") (ne $cfg.qualname "") }}
+    qualname={{ $cfg.qualname }}
+    {{- end }}
+    {{- if and (hasKey $cfg "propagate")}}
+    propagate={{ $cfg.propagate }}
+    {{- end }}
+
+    {{- range $key, $val := $cfg }}
+    {{- if and (not (has $key (list "level" "handlers" "qualname" "propagate"))) (ne $val "") }}
+    {{ $key }}={{ $val }}
+    {{- end }}
+    {{- end }}
+    {{ end }}
+
+    ## Handler Settings
+    {{- range $handler := .handlers.keys }}
+    [handler_{{ $handler }}]
+    {{- $cfg := index $configmap.logging (printf "handler_%s" $handler) }}
+
+    {{- if and (hasKey $cfg "class") (ne $cfg.class "") }}
+    class={{ $cfg.class }}
+    {{- end }}
+    {{- if and (hasKey $cfg "level") (ne $cfg.level "") }}
+    level={{ $cfg.level }}
+    {{- end }}
+    {{- if and (hasKey $cfg "formatter") (ne $cfg.formatter "") }}
+    formatter={{ $cfg.formatter }}
+    {{- end }}
+    {{- if and (hasKey $cfg "args") (gt (len $cfg.args) 0) }}
+    args=({{ $cfg.args | join ", " }},)
+    {{- end }}
+
+    {{- range $key, $val := $cfg }}
+    {{- if and (not (has $key (list "class" "level" "formatter" "args"))) (ne $val "") }}
+    {{ $key }}={{ $val }}
+    {{- end }}
+    {{- end }}
+    {{ end }}
+
+    ## Formatter Settings
+    {{- range $formatter := .formatters.keys }}
+    [formatter_{{ $formatter }}]
+    {{- $cfg := index $configmap.logging (printf "formatter_%s" $formatter) }}
+
+    {{- if and (hasKey $cfg "class") (ne $cfg.class "") }}
+    class={{ $cfg.class }}
+    {{- end }}
+
+    {{- range $key, $val := $cfg }}
+    {{- if and (ne $key "class") (ne $val "") }}
+    {{ $key }}={{ $val }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+
+    {{ end }}
+    
+
+
+{{- end }}

@@ -1,0 +1,32 @@
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ default (printf "%s-svc" (include "ipo.fullname" .)) .Values.service.name }}
+  namespace: {{ include "ipo.namespace" . }}
+  labels:
+    {{- include "ipo.labels" . | nindent 4 }}
+    {{- if .Values.service.labels }}
+    {{- toYaml .Values.service.labels | nindent 4 }}
+    {{- end }}
+    {{- if .Values.global.labels }}
+    {{- toYaml .Values.global.labels | nindent 4 }}
+    {{- end }}
+  {{- if .Values.service.annotations }} 
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "ipo.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: {{ .Values.service.port }}
+      {{- if .Values.service.name }}
+      name: {{ .Values.service.name }}
+      {{- end }}
+      targetPort: {{ .Values.service.targetPort }}
+      {{- if or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer") }}
+      nodePort: {{ .Values.service.nodePort | default "" }}
+      {{- end }}
+{{- end }}
