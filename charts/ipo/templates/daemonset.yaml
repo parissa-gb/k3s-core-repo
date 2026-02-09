@@ -45,7 +45,11 @@ spec:
       {{- end }}
       serviceAccountName: default
       containers:
+<<<<<<< Updated upstream
         - name: {{ printf "%s-%s" .Release.Name (.Values.moduleNumber | default "") | trunc 63 | trimSuffix "-" }}
+=======
+        - name: {{ .Release.Name | trunc 63 | trimSuffix "-" }}
+>>>>>>> Stashed changes
           image: {{ include "ipo.image" . }}
           {{- if .Values.image.pullPolicy }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}

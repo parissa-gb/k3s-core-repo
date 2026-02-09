@@ -76,10 +76,12 @@ affinity:
 
 {{/*  Define the image to use */}}
 {{- define "ipo.image" -}}
-{{- if and .Values.image.repository .Values.image.digest }}
-{{- printf "%s@%s" .Values.image.repository .Values.image.digest }}
-{{- else if and .Values.image.repository .Values.image.tag }}
-{{- printf "%s:%s" .Values.image.repository .Values.image.tag }}
+{{- if and .Values.image.repository .Values.image.tag .Values.image.digest -}}
+{{- printf "%s:%s@%s" .Values.image.repository .Values.image.tag .Values.image.digest -}}
+{{- else if and .Values.image.repository .Values.image.digest -}}
+{{- printf "%s@%s" .Values.image.repository .Values.image.digest -}}
+{{- else if and .Values.image.repository .Values.image.tag -}}
+{{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
 {{- end -}}
 {{- end -}}
 
@@ -128,10 +130,27 @@ affinity:
 {{- printf "%.1f" . -}}
 {{- end -}}
 
+{{/* Convert a decimal number to 2-digit decimal string */}}
+{{- define "ipo.decimalTo2Digit" -}}
+{{- printf "%02d" (int .) -}}
+{{- end -}}
+
 {{/* Check if a key exists and is not nil in a given object */}}
 {{- define "exists" -}}
 {{- if and (hasKey (index . 0) (index . 1)) (ne (index (index . 0) (index . 1)) nil) }}1{{- end -}}
 {{- end -}}
+
+{{/* Generate assetID prefix based on chart name, passed component name and a passed hex suffix */}}
+{{- define "ipo.assetID" -}}
+{{- $root := index . 0 -}}
+{{- $componentName := index . 1 -}}
+{{- $suffixDec := index . 2 -}}
+{{- $chartName := include "ipo.name" $root -}}
+{{- $suffix := (include "ipo.decimalTo2Digit" $suffixDec) -}}
+{{- $customer := required "values.customer is required to build asset_id" $root.Values.customer -}}
+{{- printf "GB-%s-%s-%s-%s" $chartName $root.Values.customer $componentName $suffix | upper -}}
+{{- end -}}
+
 
 {{/* Create bowl_dispenser block */}}
 {{/* Its placement differs in compact and compact-box */}}
@@ -288,4 +307,6 @@ affinity:
 {{- end }}
 {{- end }}
 {{- end -}}
+
+
 

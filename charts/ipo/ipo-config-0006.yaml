@@ -1,0 +1,1223 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ipo-config
+  namespace: goodbytz
+data:
+  ipo-config-prod.yaml: |
+
+    server:
+      server_port: 4840
+      application_server_name: IPO System Server
+      build_info_software_version: v0.0.1
+      connector_namespace: http://www.goodbytz.com/rka/ipo/
+
+      plugins:
+        - souz_pour_out
+        - souz_transfer
+        - souz_robot
+        - souz_ipo
+        - souz_dishwasher
+        # - souz_self_serving # for Compact Box
+
+    ipo:
+      browse_name: IpoSystem
+      display_name: Pour Out and Output System
+      device_type: IntegratedPourOutAndOutputSystemType
+      asset_id: GB-IPOv1-001
+      component_name: IPO
+      serving_option: back_of_house
+      incoming_pot_pick_up_positions:
+        - Handover Slot D1
+        - Handover Slot D2
+
+      pot_handling:
+        bowl_needs_be_dispensed_before_pour_out: True
+
+      robot:
+        display_name: IPO Robot
+        browse_name: IpoRobot
+        device_type: DishwasherRobotType
+        asset_id: GB-ROB-R005
+        component_name: IPO Robot
+        interface_type: "Fanuc"
+        # interface_tpye: Simulation
+        port: 30502
+        endpoint: 10.71.66.62
+        recovery_speed: 15
+        max_speed_override: 30
+
+        allowed_probing_positions:
+          - Dishwasher Slot 1
+          - Dishwasher Slot 2
+          - Dishwasher Slot 3
+          - Dishwasher Slot 4
+
+        home:
+          home1: # HOME
+            nominal: [0.0, -57.295, 11.459, 0.0, -11.459, 0.0]
+            max: [15.0, 10.0, 15.0, 15.0, 15.0, 15.0]
+            prog: "IPO_MOVE_HOME"
+
+        robot_prog_settings:
+          # POT_TO_DISHWASHER_IPO
+          # - IPO_HOME_DW0
+          # - IPO_DW0_DW*
+          # - POT_DOWN_DW
+          # - IPO_DW*_HOME
+          'POT_TO_DISHWASHER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: False
+            safe_to_home_with_pot: False
+          'IPO_HOME_DW(\d)':
+            recovery: ["IPO_DW{0}_HOME"]
+            safe_to_home_with_pot: False
+          'IPO_DW0_DW(\d)':
+            recovery: ["IPO_DW{0}_HOME_POT"]
+            safe_to_home_with_pot: False
+          "POT_DOWN_DW":
+            recovery: ["DW_HOME_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_DW\d_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # POT_FROM_DISHWASHER_IPO
+          # - IPO_HOME_DW* - handled above
+          # - POT_UP_DW
+          # - IPO_DW*_DW0
+          # - IPO_DW0_HOME - handled above
+          'POT_FROM_DISHWASHER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'POT_UP_DW':
+            recovery: ["DW_HOME_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_DW(\d)_DW0':
+            recovery: ["IPO_DW0_HOME"]
+            safe_to_home_with_pot: True
+
+          # PROBE_FOR_POT
+          # - IPO_HOME_DW* - handled above
+          # - POT_PROBE_DW
+          # - IPO_DW*_HOME - handled above
+          'PROBE_FOR_POT':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'POT_PROBE_DW':
+            recovery: ["DW_HOME_IPO"]
+            safe_to_home_with_pot: True
+
+          # HOME_DIRTY_DISHWASHER_HOME_IPO
+          # - IPO_HOME_DIRTY**
+          # - POT_UP_DIRTY
+          # - IPO_DIRTY**_DW*
+          # - IPO_DW0_DW* - handled above
+          # - POT_DOWN_DW - handled above
+          # - IPO_DW*_HOME - handled above
+          'HOME_DIRTY_DISHWASHER_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'IPO_HOME_DIRTY([A,B]\d)':
+            recovery: ["IPO_DIRTY{0}_HOME"]
+            safe_to_home_with_pot: False
+          'POT_UP_DIRTY':
+            recovery: ["DIRTY_HOME_IPO_POT"]
+            safe_to_home_with_pot: True
+          'IPO_DIRTY([A,B]\d)_DW(\d)':
+            recovery: ["IPO_DW{1}_HOME"]
+            safe_to_home_with_pot: False
+
+          # DW_UNLOAD_HANDOVER_IPO
+          # - IPO_HOME_DW* - handled above
+          # - POT_UP_DW - handled above
+          # - IPO_DW*_HOME_POT
+          # - IPO_HOME_HNDVR**
+          # - POT_DOWN_HANDOVER
+          'DW_UNLOAD_HANDOVER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+
+          'IPO_DW\d_HOME_POT':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+          'IPO_HOME_HNDVR[A,B,C]\d':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+          'POT_DOWN_HANDOVER':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+
+          # POT_TO_DIRTY_IPO
+          # - IPO_HOME_DIRTY**_POT
+          # - POT_DOWN_DIRTY
+          # - IPO_DIRTY**_HOME
+          'POT_TO_DIRTY_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'IPO_HOME_DIRTY([A,B]\d)_POT':
+            recovery: ["DIRTY_HOME_IPO"]
+            safe_to_home_with_pot: False
+          'POT_DOWN_DIRTY':
+            recovery: ["DIRTY_HOME_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_DIRTY([A,B]\d)_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # IPO_MOVE_HOME
+          'IPO_MOVE_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # POUROUT_DIRTY_HOME_IPO
+          # - POUROUT_IPO
+          # - IPO_POUROUT_DIRTY**
+          # - POT_DOWN_DIRTY - handled above
+          # - IPO_DIRTY**_HOME - handled above
+          'POUROUT_DIRTY_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'POUROUT_IPO':
+            recovery: ["IPO_POUROUT_HOME"]
+            safe_to_home_with_pot: False
+          'IPO_POUROUT_DIRTY([A,B]\d)':
+            recovery: ["DIRTY_HOME_IPO"]
+            safe_to_home_with_pot: False
+
+          # POT_FROM_HANDOVER_IPO
+          # - IPO_HOME_HNDVRD*
+          # - POT_UP_HANDOVER
+          # - IPO_HNDVRD*_HOME
+          'POT_FROM_HANDOVER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'IPO_HOME_HNDVR(D\d)':
+            recovery: ["IPO_HNDVR{0}_HOME"]
+            safe_to_home_with_pot: False
+          'POT_UP_HANDOVER':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: True
+          'IPO_HNDVR(D\d)_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # POT_TO_CLEAN_IPO
+          # - IPO_HOME_CLEAN_**
+          # - POT_DOWN_CLEAN
+          # - IPO_CLEAN_**_HOME
+          'pot_to_clean_ipo': # must be lower case!!!
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+            max_ovrd: 80
+          'IPO_HOME_CLEAN_([A,B]\d)':
+            recovery: ["IPO_CLEAN_{0}_HOME"]
+            safe_to_home_with_pot: False
+          'POT_DOWN_CLEAN':
+            recovery: ["CLEAN_HOME_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_CLEAN_[A,B]\d_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # POT_FROM_HANDOVER_POUROUT_IPO
+          # - IPO_HOME_HNDVRD* - handled above
+          # - POT_UP_HANDOVER - handled above
+          # - IPO_HNDVRD*_POUROUT
+          'POT_FROM_HANDOVER_POUROUT_IPO':
+            recovery: ["IPO_POUROUT_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'IPO_HNDVR(D\d)_POUROUT':
+            recovery: ["IPO_POUROUT_HOME"]
+            safe_to_home_with_pot: False
+
+          # POUR_OUT_IPO
+          # - POUROUT_IPO
+          # - IPO_POUROUT_HOME
+          'POUR_OUT_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'POUROUT_IPO':
+            recovery: ["IPO_POUROUT_HOME"]
+            safe_to_home_with_pot: False
+          'IPO_POUROUT_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # POT_TO_HANDOVER_IPO
+          # - IPO_HOME_HNDVR** - handled above
+          # - POT_DOWN_HANDOVER - handled above
+          'POT_TO_HANDOVER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+
+          # POT_FROM_CLEAN_IPO
+          # - IPO_HOME_CLEAN_** - handled above
+          # - POT_UP_CLEAN
+          # - IPO_CLEAN_**_HOME - handled above
+          'pot_from_clean_ipo': # must be lower case!!!
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+            max_ovrd: 80
+          'POT_UP_CLEAN':
+            recovery: ["CLEAN_HOME_IPO"]
+            safe_to_home_with_pot: True
+
+
+          # Used for homing only
+          'DIRTY_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'DW_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'CLEAN_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'DIRTY_HOME_IPO_POT':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+
+        prog_result_codes:
+          DW_POT_PROBE_OCCUPIED: 3100
+          DW_POT_PROBE_FREE: 3101
+
+        frame_map:
+          handover:
+            Handover Slot A1: 81
+            Handover Slot A2: 82
+            Handover Slot B1: 83
+            Handover Slot B2: 84
+            Handover Slot C1: 85
+            Handover Slot C2: 86
+            Handover Slot D1: 87
+            Handover Slot D2: 88
+          clean:
+            Clean Pot Slot A1: 401
+            Clean Pot Slot A2: 402
+            Clean Pot Slot B1: 403
+            Clean Pot Slot B2: 404
+            Clean Pot Slot B3: 405
+          dirty:
+            Dirty Pot Slot A1: 301
+            Dirty Pot Slot A2: 302
+            Dirty Pot Slot B1: 303
+            Dirty Pot Slot B2: 304
+          dishwasher:
+            Dishwasher Slot 1: 21
+            Dishwasher Slot 2: 22
+            Dishwasher Slot 3: 23
+            Dishwasher Slot 4: 24
+
+      clean_pot_transfer:
+        display_name: Clean Pot Handover
+        device_type: CleanPotTransferSystemType
+        interface_type: GbActioAsyncCanOpenPotShelve
+        asset_id: GB-IPO-PHv1-1.a
+        component_name: Dirty Pot Handover Shelve
+        can_id: 0x05
+        pickup_strategy: NextInLine
+        receive_strategy: FirstInLine
+        blocking_check_interval: 1
+        slot_name_prefix: "Handover Slot"
+        prepare_to_receive:
+          enable_pot_position_return: True
+        prepare_for_pickup:
+          enable_pot_position_return: True
+        blocking: True
+        slots:
+          - name: "A1"
+            io_link: 1 #0
+          - name: "A2"
+            io_link: 0 #1
+          - name: "B1"
+            io_link: 3 #2
+          - name: "B2"
+            io_link: 2 #3
+          - name: "C1"
+            io_link: 5 #4
+          - name: "C2"
+            io_link: 4 #5
+
+      full_pot_transfer:
+        display_name: Full Pot Handover
+        device_type: DirtyPotTransferSystemType
+        interface_type: GbActioAsyncCanOpenPotShelve
+        asset_id: GB-IPO-PHv1-1.b
+        component_name: Clean Pot Hanover Shelve
+        can_id: 0x05
+        pickup_strategy: NextInLine
+        receive_strategy: FirstInLine
+        blocking_check_interval: 1
+        slot_name_prefix: "Handover Slot"
+        prepare_to_receive:
+          enable_pot_position_return: True
+        prepare_for_pickup:
+          enable_pot_position_return: True
+        blocking: True
+        slots:
+        #OLD naming convention
+          - name: "D1"
+            io_link: 7 #6
+          - name: "D2"
+            io_link: 6 #7
+
+      clean_pot_storage:
+        display_name: Clean Pot Storage
+        device_type: CleanPotTransferSystemType
+        interface_type: GbActioAsyncCanOpenPotShelve
+        asset_id: GB-IPO-CPSv1-1
+        component_name: Clean Pot Strage Shelve
+        can_id: 0x01
+        pickup_strategy: NextInLine
+        receive_strategy: FirstInLine
+        blocking_check_interval: 1
+        blocking: False
+        slot_name_prefix: "Clean Pot Slot"
+        position_update_delay: 0.001
+        prepare_to_receive:
+          enable_pot_position_return: True
+        prepare_for_pickup:
+          enable_pot_position_return: True
+        slots:
+          - name: "A1"
+            io_link: 0
+          - name: "A2"
+            io_link: 1
+          - name: "B1"
+            io_link: 2
+          - name: "B2"
+            io_link: 3
+          - name: "B3"
+            io_link: 4
+
+      dirty_pot_storage:
+        display_name: Dirty Pot Storage
+        device_type: CleanPotTransferSystemType
+        interface_type: GbActioAsyncCanOpenPotShelve
+        asset_id: GB-IPO-DPSv1-1
+        component_name: Dirty Pot Storage Shelve
+        can_id: 0x02
+        pickup_strategy: NextInLine
+        receive_strategy: FirstInLine
+        blocking_check_interval: 1
+        blocking: False
+        slot_name_prefix: "Dirty Pot Slot"
+        position_update_delay: 0.001
+        prepare_to_receive:
+          enable_pot_position_return: True
+        prepare_for_pickup:
+          enable_pot_position_return: True
+        slots:
+          - name: "A1"
+            io_link: 2
+          - name: "A2"
+            io_link: 3
+          - name: "B1"
+            io_link: 1
+          - name: "B2"
+            io_link: 0
+
+      dishwasher:
+        endpoint: opc.tcp://dishwasher.goodbytz.svc.cluster.local:4840 # Comment to add dishwasher to the server
+        # device_type: DishWashingMachineType
+        # interface_type: Simulation
+        skip_wash_when_resetting: False
+        t_auo_wash: 60
+        t_auto_close_hood: 0
+
+      bowl_dispenser_1:
+        display_name: Bowl Dispenser 1
+        device_type: BowlDispenserType
+        asset_id: GB-Dispenser-D001
+        component_name: Bowl Dispenser 1
+        interface_type: GbCanIpo
+        has_bowl_gripper: false
+        has_conveyor: false
+        bowl_type_dispensed: Paper #KeepIn
+
+
+        denester:
+          can_node_id: 1
+          target_speed: 10.0
+          bowl_type_dispensed: Paper #KeepIn
+          bowl_level_sensor:
+            parameter_index_name: IO_EXPANDER_I6
+            sensor_name: are_bowls_loaded
+          end_stop:
+            sensor_name: bowl_below_denester
+            parameter_index_name: IO_EXPANDER_I7
+            stop_delay: 0.0
+            trigger_edge_type: FALLING
+            inverted: false
+          stepper:
+            micro_steps: 2
+            gear_ratio: 1
+
+        state_machine: 
+          denesting_timeout: 16.0 # Test-system;changed for new bowl dispenser 2025/08/20 tst
+          # needed to fill up new higher rollers after refill
+          # denesting_timeout: 10.0
+          bowl_type_dispensed: "Paper" # Test system
+          bowl_buffer_count: 3  # Test system
+          refill_debounce_count: 4  # Test system
+          refill_debounce_interval: 1  # Test system
+          wait_for_refill_when_empty: false 
+
+      bowl_dispenser_2:
+        display_name: Bowl Dispenser 2
+        device_type: BowlDispenserType
+        asset_id: GB-Dispenser-D002
+        component_name: Bowl Dispenser 2
+        interface_type: GbCanIpo
+        has_bowl_gripper: false
+        has_conveyor: false
+        bowl_type_dispensed: KeepIn #Paper
+
+        denester:
+          can_node_id: 2
+          target_speed: 10.0
+          bowl_type_dispensed: KeepIn #Paper
+          bowl_level_sensor:
+            parameter_index_name: IO_EXPANDER_I6
+            sensor_name: are_bowls_loaded
+          end_stop:
+            sensor_name: bowl_below_denester
+            parameter_index_name: IO_EXPANDER_I7
+            stop_delay: 0.0
+            trigger_edge_type: FALLING
+            inverted: false
+          stepper:
+            micro_steps: 2
+            gear_ratio: 1
+            # motor_current: 2100
+            # max_acceleration: 200
+            # max_speed: 100
+
+        state_machine:
+          denesting_timeout: 16.0 # For Test system ; changed for new bowl dispenser 2025/08/20 tst
+          # denesting_timeout: 10.0
+          bowl_type_dispensed: "KeepIn" # Test system
+          bowl_buffer_count: 3 # Test system
+          refill_debounce_count: 4 # Test system
+          refill_debounce_interval: 1 # Test system
+          wait_for_refill_when_empty: false
+
+      serving_conveyor_output:
+        display_name: Serving Conveyor 1
+        device_type: ServingConveyorOutputType
+        asset_id: GB-Conveyor-C001
+        component_name: Serving Conveyor 1
+        interface_type: GbCanIpo
+        state_machine:
+          use_delay_to_move_bowl_to_output: False
+          delay_for_moving_bowl_to_output: 2.0
+          conveying_timeout_serving: 10.0
+        middle_conveyor:
+          name: Middle Conveyor
+          can_node_id: 5
+          motor_direction: False # True: Invert Motor direction ; inverted cabling
+        
+        ### for test system 12/11/25 ###
+        conveyor_gate:
+          can_node_id: 4
+          target_speed: 5
+          target_position: 2.2
+          stepper:
+            invert_direction: True
+        ###############################
+
+  # Use this config for Compact Box systems
+  ipo-ssm-config-prod.yaml: |
+
+    serving_box_interface: &box_interface  GbActioCanOpenV2Async # GbActioCanOpenV2
+    bowl_dispenser_interface: &dispenser_interface GbActioCanOpenSsmDispenser # GbActioCanOpenSsmDispenser #  DryTestCanOpenSsmDispenser
+    homing_timeout: &homing_timeout 25
+    auto_close_after_serving_empty: &auto_close_after_serving_empty True #False
+
+    server:
+      server_port: 4840
+      application_server_name: IPO System Server
+
+      connector_namespace: http://www.goodbytz.com/rka/ipo/
+      plugins:
+        - souz_pour_out
+        - souz_transfer
+        - souz_robot
+        - souz_ipo
+        - souz_dishwasher
+
+    box1:
+      browse_name: ServingBoxA1
+      display_name: Box 1
+      device_type: SelfServingBoxType
+      interface_type: *box_interface # Simulation, GbActioCanOpen
+      asset_id: GB-SSBv2-B019
+      component_name: Box 1
+      interface_config:
+        can_node_id: 4
+      state_machine_config:
+        auto_close_after_serving_empty: *auto_close_after_serving_empty
+        timeout_home_door: *homing_timeout
+
+    box2:
+      browse_name: ServingBoxA2
+      display_name: Box 2
+      device_type: SelfServingBoxType
+      interface_type: *box_interface # Simulation, GbActioCanOpenSsmDispenser
+      asset_id: GB-SSBv2-B022
+      component_name: Box 2
+      # can_node_id: 6
+      interface_config:
+        can_node_id: 5
+      state_machine_config:
+        auto_close_after_serving_empty: *auto_close_after_serving_empty
+        timeout_home_door: *homing_timeout
+
+    box3:
+      display_name: Box 3
+      browse_name: ServingBoxB1
+      device_type: SelfServingBoxType
+      interface_type: *box_interface # Simulation, GbActioCanOpen
+      asset_id: GB-SSBv2-B020
+      component_name: Box 3
+      # can_node_id: 5
+      interface_config:
+        can_node_id: 6
+      state_machine_config:
+        auto_close_after_serving_empty: *auto_close_after_serving_empty
+        timeout_home_door: *homing_timeout
+
+    box4:
+      display_name: Box 4
+      browse_name: ServingBoxB2
+      device_type: SelfServingBoxType
+      interface_type: *box_interface # Simulation, GbActioCanOpen
+      asset_id: GB-SSB-B023
+      component_name: Box 4
+      interface_config:
+        can_node_id: 7
+      state_machine_config:
+        auto_close_after_serving_empty: *auto_close_after_serving_empty
+        timeout_home_door: *homing_timeout
+
+    bowl_dispenser_1:
+      display_name: Bowl Dispenser
+      device_type: BowlDispenserType
+      interface_type: *dispenser_interface
+      asset_id: GB-BD-BD007
+      component_name: Packaging Station I Slot P1
+      can_node_id: 8
+      bowl_type_dispensed: Paper
+
+      denester:
+        can_node_id: 8
+        target_speed: 10.0
+        end_stop:
+          parameter_index_name: IO_EXPANDER_I2
+          stop_delay: 0.1
+          edge_type: FALLING
+        bowl_level_sensor:
+          parameter_index_name: IO_EXPANDER_I0
+          sensor_name: are_bowls_loaded
+        stepper:
+          invert_direction: True
+          micro_steps: 2
+          gear_ratio: 1
+
+      conveyor:
+        can_node_id: 8
+        end_stop:
+          parameter_index_name: IO_EXPANDER_I4
+          stop_delay: 2
+          edge_type: RISING
+        bowl_gripper_sensor:
+          parameter_index_name: IO_EXPANDER_I1
+          sensor_name: is_gripper_present
+
+        motor_direction: False
+
+    ipo:
+      browse_name: IpoSystem
+      display_name: Pour Out and Output System
+      device_type: IntegratedPourOutAndOutputSystemType
+      asset_id: GB-IPOv1-001
+      component_name: IPO
+      serving_option: front_of_house
+      incoming_pot_pick_up_positions:
+        - Handover Slot D1
+        - Handover Slot D2
+
+      pot_handling:
+        bowl_needs_be_dispensed_before_pour_out: True
+        # bowl_needs_be_dispensed_before_pour_out: False
+        self_serving:
+          host: self-serving-service.goodbytz
+          port: 8001
+          retry_pause_seconds: 5
+          max_retries: 12 # 60
+          randomly_select_serving_box: False
+
+      robot:
+        display_name: IPO Robot
+        browse_name: IpoRobot
+        device_type: DishwasherRobotType
+        asset_id: GB-ROB-R005
+        component_name: IPO Robot
+        interface_type: "Fanuc"
+        # interface_tpye: Simulation
+        port: 30502
+        endpoint: 10.71.66.62
+        recovery_speed: 15
+        max_speed_override: 100
+
+        allowed_probing_positions:
+          - Dishwasher Slot 1
+          - Dishwasher Slot 2
+          - Dishwasher Slot 3
+          - Dishwasher Slot 4
+
+        home:
+          home1: # HOME
+            nominal: [0.0, -57.295, 11.459, 0.0, -11.459, 0.0]
+            max: [15.0, 10.0, 15.0, 15.0, 15.0, 15.0]
+            prog: "IPO_MOVE_HOME"
+        # --------------------------start of homing table -----------------------
+        robot_prog_settings:
+          # CLEAN_TO_HANDOVER_IPO
+          # - POT_FROM_CLEAN_IPO -- handled by subprograms
+          # - POT_TO_HANDOVER_IPO -- handled by subprograms
+          'CLEAN_TO_HANDOVER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: False
+            safe_to_home_with_pot: False
+
+          # UNLOAD_HANDOVER_IPO
+          # - POT_FROM_HANDOVER_IPO -- handled by subprograms
+          # - POT_TO_DISHWASHER_IPO --  handled by subprograms
+          # or
+          # - POT_TO_DIRTY_IPO --  handled by subprograms
+          # IPO_MOVE_HOME
+          'UNLOAD_HANDOVER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: False
+            safe_to_home_with_pot: False
+          'IPO_MOVE_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # UNLOAD_DW_IPO
+          # - IPO_HOME_DW[1..4]
+          # - POT_UP_DW
+          # - IPO_DW[1..4]_HOME_POT
+          # - POT_TO_HANDOVER_IPO or -- handled by subprograms
+          # - POT_TO_CLEAN_IPO -- handled by subprograms
+          'UNLOAD_DW_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: False
+            safe_to_home_with_pot: False
+          'IPO_HOME_DW(\d)':
+            recovery: ["IPO_DW{0}_HOME_POT"]
+            safe_to_home_with_pot: False
+          'POT_UP_DW':
+            recovery: ["DW_HOME_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_DW(\d)_HOME_POT':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # HOME_DIRTY_DISHWASHER_HOME_IPO
+          # - IPO_HOME_DIRTY[1..4]
+          # - POT_UP_DIRTY
+          # - IPO_DIRTY[1..4]_DW0
+          # - IPO_DW0_DW[1..4]
+          # - POT_DOWN_DW
+          # - IPO_DW[1..4]_HOME
+          'HOME_DIRTY_DISHWASHER_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'IPO_HOME_DIRTY(\d)':
+            recovery: ["IPO_DIRTY{0}_HOME"]
+            safe_to_home_with_pot: False
+          'POT_UP_DIRTY':
+            recovery: ["DIRTY_HOME_POT_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_DIRTY(\d)_DW0':
+            recovery: ["IPO_DW0_HOME_POT"]
+            safe_to_home_with_pot: True
+          'IPO_DW0_DW(\d)':
+            recovery: ["IPO_DW{0}_HOME_POT"]
+            safe_to_home_with_pot: False
+          'POT_DOWN_DW':
+            recovery: ["DW_HOME_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_DW(\d)_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          #POT_FROM_HANDOVER_POUROUT_IPO
+          # - IPO_HOME_HNDVR[7-8]
+          # - POT_UP_HNDVR
+          # - IPO_HNDVR[7-8]_POUROUT
+          'POT_FROM_HANDOVER_POUROUT_IPO':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'IPO_HOME_HNDVR(\d)' :
+            recovery: ["IPO_HNDVR{0}_HOME_POT"]
+            safe_to_home_with_pot: True
+          'POT_UP_HNDVR' :
+            recovery: ["HANDOVER_HOME_POT_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_HNDVR(\d)_POUROUT':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+
+          # POUROUT_SERVE_IPO
+          # - POUROUT_IPO
+          # - IPO_POUROUT_HOME
+          # - POT_TO_DISHWASHER_IPO -- handeled by subpragrams OK
+          # - or
+          # - POUROUT_DIRTY_HOME_IPO -- handeled by subpragrams OK
+          # - IPO_HOME_GRIPPER
+          # - SSM_BOWL_UP
+          # - IPO_GRIPPER_SSM[1..4]
+          # - SSM_BOWL_DOWN
+          # - IPO_SSM[1..4]_GRIPPER
+          # - SSM_GRIPPER_DOWN
+          # - IPO_GRIPPER_HOME
+          'POUROUT_SERVE_IPO' :
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+
+          'HOME_SERVE_IPO' :
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+
+          'POUROUT_IPO':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+          'IPO_POUROUT_HOME' :
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: True
+          'IPO_HOME_GRIPPER':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+          'SSM_BOWL_UP' :
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+          'IPO_GRIPPER_SSM(\d)':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+          'SSM_BOWL_DOWN' :
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+          'IPO_SSM(\d)_GRIPPER' :
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+          'SSM_GRIPPER_DOWN' :
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_home_with_pot: False
+          'IPO_GRIPPER_HOME' :
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # PROBE_FOR_POT
+            # - IPO_HOME_DW[1..4] - handled above
+            # - POT_PROBE_DW
+            # - IPO_DW[1..4]_HOME - handled above
+            'PROBE_FOR_POT':
+              recovery: ["ALREADY_HOME"]
+              safe_to_home_with_pot: False
+              safe_to_resume: False
+            'POT_PROBE_DW':
+              recovery: ["DW_HOME_IPO"]
+              safe_to_home_with_pot: True
+
+
+          # POT_TO_DISHWASHER_IPO
+          # - IPO_HOME_DW0
+          # - IPO_DW0_DW[1..4] -- handeled above
+          # - POT_DOWN_DW -- handeled above
+          # - IPO_DW[1..4]_HOME -- handeled above
+          'POT_TO_DISHWASHER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: False
+            safe_to_home_with_pot: False
+          'IPO_HOME_DW0' :
+            recovery: ["IPO_DW0_HOME_POT"]
+            safe_to_home_with_pot: True
+
+          # POT_TO_DIRTY_IPO
+          # - IPO_HOME_DIRTY[1..4]_POT
+          # - POT_DOWN_DIRTY
+          # - IPO_DIRTY[1..4]_HOME
+          'POT_TO_DIRTY_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'IPO_HOME_DIRTY(\d)_POT':
+            recovery: ["DIRTY_HOME_POT_IPO"]
+            safe_to_home_with_pot: False
+          'POT_DOWN_DIRTY' :
+            recovery: ["DIRTY_HOME_IPO"]
+            safe_to_home_with_pot: False
+          'IPO_DIRTY(\d)_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # POT_TO_CLEAN_IPO
+          # - IPO_HOME_CLEAN[1..5]_POT
+          # - POT_DOWN_CLEAN
+          # - IPO_CLEAN_[1..5]_HOME
+          'POT_TO_CLEAN_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+          'IPO_HOME_CLEAN_(\d)_POT':
+            recovery: ["CLEAN_HOME_POT_IPO"]
+            safe_to_home_with_pot: True
+          'POT_DOWN_CLEAN':
+            recovery: ["CLEAN_HOME_POT_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_CLEAN_\d_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # POUROUT_DIRTY_HOME_IPO
+          # - IPO_POUROUT_DIRTY[1..4]
+          # - POT_DOWN_DIRTY -- handeled above
+          # - IPO_DIRTY[1..4]_HOME - handled above
+          'POUROUT_DIRTY_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+
+          'IPO_POUROUT_DIRTY(\d)':
+            recovery: ["DIRTY_HOME_IPO"]
+            safe_to_home_with_pot: False
+
+          # POT_TO_HANDOVER_IPO
+          # - IPO_HOME_HNDVR[1..6] -- handeled above
+          # - POT_DOWN_HANDOVER
+          # - IPO_MOVE_HOME
+          'POT_TO_HANDOVER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+
+          'POT_DOWN_HANDOVER' :
+            recovery: ["HANDOVER_HOME_POT_IPO"]
+            safe_to_home_with_pot: False
+
+          # POT_FROM_HANDOVER_IPO
+          # - IPO_HOME_HNDVR[7-8] --handeled above
+          # - POT_UP_HANDOVER
+          # - IPO_HNDVR[7-8]_HOME_POT
+          'POT_FROM_HANDOVER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+            safe_to_resume: False
+
+          'POT_UP_HANDOVER':
+            recovery: ["HANDOVER_HOME_POT_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_HNDVR(\d)_HOME_POT':
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+
+          # POT_FROM_CLEAN_IPO
+          # IPO_HOME_CLEAN[1..5]
+          # POT_UP_CLEAN
+          # IPO_CLEAN[1..5]_HOME_POT
+          'POT_FROM_CLEAN_IPO' :
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: False
+          'IPO_HOME_CLEAN(\d)' :
+            recovery: ["IPO_CLEAN{0}_HOME"]
+            safe_to_home_with_pot: False
+          'POT_UP_CLEAN' :
+            recovery: ["CLEAN_HOME_POT_IPO"]
+            safe_to_home_with_pot: True
+          'IPO_CLEAN(\d)_HOME_POT' :
+            recovery: ["ALREADY_HOME"]
+            safe_to_home_with_pot: True
+          # recovery for recovery!
+          'DW_HOME_IPO' :
+            recovery: ["DW_HOME_IPO"]
+            safe_to_home_with_pot: False
+          'DIRTY_HOME_IPO' :
+            recovery: ["DIRTY_HOME_IPO"]
+            safe_to_home_with_pot: False
+          'CLEAN_HOME_POT_IPO' :
+            recovery: ["CLEAN_HOME_POT_IPO"]
+            safe_to_home_with_pot: True
+          'HANDOVER_HOME_POT_IPO' :
+            recovery: ["HANDOVER_HOME_POT_IPO"]
+            safe_to_home_with_pot: True
+          # --------------------------end of homing table -----------------------
+
+        prog_result_codes:
+          DW_POT_PROBE_OCCUPIED: 3100
+          DW_POT_PROBE_FREE: 3101
+
+        frame_map:
+          handover:
+            Handover Slot A1: 81
+            Handover Slot A2: 82
+            Handover Slot B1: 83
+            Handover Slot B2: 84
+            Handover Slot C1: 85
+            Handover Slot C2: 86
+            Handover Slot D1: 87
+            Handover Slot D2: 88
+            # Handover Slot D1: { target_node_id: 87, dest: CZ7 }
+            # Handover Slot D2: { target_node_id: 88, dest: CZ8 }
+          clean:
+            Clean Pot Slot A1: 401
+            Clean Pot Slot A2: 402
+            Clean Pot Slot A3: 403
+            Clean Pot Slot A4: 404
+            Clean Pot Slot A5: 405
+          dirty:
+            Dirty Pot Slot A1: 301
+            Dirty Pot Slot A2: 302
+            Dirty Pot Slot B1: 303
+            Dirty Pot Slot B2: 304
+          dishwasher:
+            Dishwasher Slot 1: 21
+            Dishwasher Slot 2: 22
+            Dishwasher Slot 3: 23
+            Dishwasher Slot 4: 24
+          self_serving_1: #WARN: verify that the boxes are correct
+            Box 1: 31
+            Box 2: 32
+            Box 3: 33
+            Box 4: 34
+
+      clean_pot_transfer:
+        display_name: Clean Pot Handover
+        device_type: CleanPotTransferSystemType
+        interface_type: GbActioAsyncCanOpenPotShelve
+        asset_id: GB-IPO-PHv1-1.a
+        component_name: Clean Pot Handover Shelve
+        can_id: 0x03
+        pickup_strategy: NextInLine
+        receive_strategy: FirstInLine
+        blocking_check_interval: 1
+        slot_name_prefix: "Handover Slot"
+        prepare_to_receive:
+          enable_pot_position_return: True
+        prepare_for_pickup:
+          enable_pot_position_return: True
+        blocking: True
+        slots:
+          - name: "A1"
+            io_link: 0
+          - name: "A2"
+            io_link: 1
+          - name: "B1"
+            io_link: 2
+          - name: "B2"
+            io_link: 3
+          - name: "C1"
+            io_link: 4
+          - name: "C2"
+            io_link: 5
+
+      full_pot_transfer:
+        display_name: Full Pot Handover
+        device_type: DirtyPotTransferSystemType
+        interface_type: GbActioAsyncCanOpenPotShelve
+        asset_id: GB-IPO-PHv1-1.b
+        component_name: Full Pot Handover Shelve
+        can_id: 0x03
+        pickup_strategy: NextInLine
+        receive_strategy: FirstInLine
+        blocking_check_interval: 1
+        slot_name_prefix: "Handover Slot"
+        prepare_to_receive:
+          enable_pot_position_return: True
+        prepare_for_pickup:
+          enable_pot_position_return: True
+        blocking: True
+        slots:
+        #OLD naming convention
+          - name: "D1"
+            io_link: 6
+          - name: "D2"
+            io_link: 7
+
+      clean_pot_storage:
+        display_name: Clean Pot Storage
+        device_type: CleanPotTransferSystemType
+        interface_type: GbActioAsyncCanOpenPotShelve
+        asset_id: GB-IPO-CPSv1-1
+        component_name: Clean Pot Strage Shelve
+        can_id: 0x01
+        pickup_strategy: NextInLine
+        receive_strategy: FirstInLine
+        blocking_check_interval: 1
+        blocking: False
+        slot_name_prefix: "Clean Pot Slot"
+        position_update_delay: 0.001
+        prepare_to_receive:
+          enable_pot_position_return: True
+        prepare_for_pickup:
+          enable_pot_position_return: True
+        slots:
+          - name: "A1"
+            io_link: 4
+          - name: "A2"
+            io_link: 3
+          - name: "A3"
+            io_link: 2
+          - name: "A4"
+            io_link: 1
+          - name: "A5"
+            io_link: 0
+
+      dirty_pot_storage:
+        display_name: Dirty Pot Storage
+        device_type: CleanPotTransferSystemType
+        interface_type: GbActioAsyncCanOpenPotShelve
+        asset_id: GB-IPO-DPSv1-1
+        component_name: Dirty Pot Storage Shelve
+        can_id: 0x02
+        pickup_strategy: NextInLine
+        receive_strategy: FirstInLine
+        blocking_check_interval: 1
+        blocking: False
+        slot_name_prefix: "Dirty Pot Slot"
+        position_update_delay: 0.001
+        prepare_to_receive:
+          enable_pot_position_return: True
+        prepare_for_pickup:
+          enable_pot_position_return: True
+        slots:
+          - name: "A1"
+            io_link: 0
+          - name: "A2"
+            io_link: 1
+          - name: "B1"
+            io_link: 2
+          - name: "B2"
+            io_link: 3
+
+      dishwasher:
+        endpoint: opc.tcp://dishwasher.goodbytz.svc.cluster.local:4840 # Comment to add dishwasher to the server
+        # device_type: DishWashingMachineType
+        # interface_type: Simulation
+        skip_wash_when_resetting: False
+        t_auo_wash: 60
+        t_auto_close_hood: 0
+
+  logging.conf: |
+    #
+    # Logger Settings:
+    # See: https://docs.python.org/3.5/library/logging.config.html#logging-config-fileformat
+    # and: https://docs.python.org/3.5/howto/logging.html
+    #
+
+    [loggers]
+    keys=root, main, pymodbus, pymodbus_log, asyncua, canopen, can
+
+    [handlers]
+    keys=consoleHandler
+    # fileHandler
+
+    [formatters]
+    keys=simpleFormatter
+
+    ######## LOGGER #####################
+    [logger_root]
+    level=DEBUG
+    handlers=consoleHandler
+
+    [logger_main]
+    level=DEBUG
+    handlers=consoleHandler
+    qualname=__main__
+    propagate=0
+
+    [logger_asyncua]
+    level=INFO
+    handlers=consoleHandler
+    qualname=asyncua
+    propagate=0
+
+    [logger_uakitchen_utility_ua_instantiate_utils]
+    level=ERROR
+    handlers=consoleHandler
+    qualname=uakitchen.utility.ua_instantiate_utils
+    propagate=0
+
+    [logger_pymodbus]
+    level=ERROR
+    handlers=consoleHandler
+    qualname=pymodbus
+    propagate=0
+
+    [logger_pymodbus_log]
+    level=ERROR
+    handlers=consoleHandler
+    qualname=pymodbus.logging
+    propagate=0
+
+    [logger_canopen]
+    level=WARNING
+    handlers=consoleHandler
+    qualname=canopen
+    propagate=0
+
+    [logger_can]
+    level=WARNING
+    handlers=consoleHandler
+    qualname=can
+    propagate=0
+
+    [logger_canopen_nmt]
+    level=WARNING
+    handlers=consoleHandler
+    qualname=canopen.nmt
+    propagate=0
+
+    # Add something like this for every logger name you want to cover
+    # 1) <name> is a short name of the logger
+    # 2) <actual name> is the full name of the logger, may be equal to <name>
+    # 3) Add the <name> to the [loggers] list
+    # [logger_<name>]
+    # level=DEBUG
+    # handlers=consoleHandler
+    # qualname=<actual name>
+    # propagate=0
+
+    ######## HANDLER ####################
+    [handler_consoleHandler]
+    class=StreamHandler
+    level=DEBUG
+    formatter=simpleFormatter
+    args=(sys.stdout,)
+
+    ######## FORMATTER ##################
+    [formatter_simpleFormatter]
+    class=ecs_logging.StdlibFormatter

@@ -154,7 +154,7 @@ configmap:
       display_name: Box 1
       device_type: SelfServingBoxType
       # interface_type:  Simulation # Enable to override per box interface
-      asset_id: GB-SSBv2-B019
+      asset_id: null
       component_name: Box 1
       interface_config:
         can_node_id: 4
@@ -168,7 +168,7 @@ configmap:
       display_name: Box 2
       device_type: SelfServingBoxType
       # interface_type:  Simulation # Enable to override per box interface
-      asset_id: GB-SSBv2-B022
+      asset_id: null
       component_name: Box 2
       interface_config:
         can_node_id: 5
@@ -203,6 +203,7 @@ configmap:
       state_machine_config:
         # auto_close_after_serving_empty: True # Override global auto close setting
         # timeout_home_door: 25 # Override global homing timeout
+
 
   ipo:
     # enabled: true

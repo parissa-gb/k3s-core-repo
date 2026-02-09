@@ -61,8 +61,13 @@ data:
       {{- else }}
       interface_type: {{ $.Values.configmap.serving_box_interface }}
       {{- end }}
-      {{- if hasKey $boxConfig "asset_id" }}
+      {{- if include "exists" (list $boxConfig "asset_id") }}
       asset_id: {{ $boxConfig.asset_id | quote }}
+      {{- else }}
+        {{- /* box2 -> 2, box12 -> 12, box300 -> 300 */ -}}
+        {{- $numStr := regexReplaceAll "^box([0-9]+)$" $boxName "$1" -}}
+        {{- $num := int $numStr}}
+      asset_id: {{ include "ipo.assetID" (list $ "box" $num) | quote }}
       {{- end }}
       {{- if hasKey $boxConfig "component_name" }}
       component_name: {{ $boxConfig.component_name }}

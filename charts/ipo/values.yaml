@@ -4,7 +4,7 @@ global:
   annotations: {}
 
 systemType: null # "compact" or "compact-box"
-moduleNumber: null # "01", "02, etc.
+moduleNumber: 01 # "01", "02, etc.
 
 namespaceOverride: ""
 # Chart name overrides
@@ -14,9 +14,9 @@ fullnameOverride: ""
 ##### ipo connector Daemonset values #####
 # Container image details
 image:
-  repository: "ghcr.io/goodbytz/souz-ipo-connector-preview"
-  # tag: "pr54"
-  digest: "ghcr.io/goodbytz/souz-ipo-connector:v0.3.4@sha256:a1defebf263892c7853a0c314906bd84a3b40b0bd5c1acb9ee480dcb026873dd"
+  repository: "ghcr.io/goodbytz/souz-ipo-connector"
+  digest: "sha256:a1defebf263892c7853a0c314906bd84a3b40b0bd5c1acb9ee480dcb026873dd"
+  tag: v0.3.4 
   pullPolicy: IfNotPresent
 # Image pull secrets
 imagePullSecrets: "dockerconfigjson-harbor"
@@ -156,7 +156,7 @@ configmap:
       display_name: Box 1
       device_type: SelfServingBoxType
       # interface_type:  Simulation # Enable to override per box interface
-      asset_id: GB-SSBv2-B019
+      asset_id: null
       component_name: Box 1
       interface_config:
         can_node_id: 4
@@ -170,7 +170,7 @@ configmap:
       display_name: Box 2
       device_type: SelfServingBoxType
       # interface_type:  Simulation # Enable to override per box interface
-      asset_id: GB-SSBv2-B022
+      asset_id: null
       component_name: Box 2
       interface_config:
         can_node_id: 5
@@ -1031,6 +1031,9 @@ configmap:
         name: Middle Conveyor
         can_node_id: 5
         motor_direction: False # Invert Motor direction as cabeling inverted
+        
+      conveyor_gate:
+        enabled: false
 
   #### ipo connector Logging values ####
   logging: 
