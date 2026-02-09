@@ -940,7 +940,7 @@ configmap:
         enabled: true
         display_name: Bowl Dispenser 1
         device_type: BowlDispenserType
-        asset_id: GB-Dispenser-D001
+        asset_id: null
         component_name: Bowl Dispenser 1
         # interface_type: GbCanIpo # GbActioCanOpenSsmDispenser , GbCanIpo, Simulation
         has_bowl_gripper: false
@@ -989,7 +989,7 @@ configmap:
         enabled: true
         display_name: Bowl Dispenser 2
         device_type: BowlDispenserType
-        asset_id: GB-Dispenser-D002
+        asset_id: null
         component_name: Bowl Dispenser 2
         # interface_type: GbCanIpo
         # interface_type: Simulation
