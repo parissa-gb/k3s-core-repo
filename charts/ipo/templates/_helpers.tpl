@@ -161,7 +161,13 @@ affinity:
 {{ $bowlDispenser }}:
   display_name: {{ $dispenser.display_name | quote }}
   device_type: {{ $dispenser.device_type | quote }}
+  {{- if include "exists" (list $dispenser "asset_id") }}
   asset_id: {{ $dispenser.asset_id | quote }}
+  {{- else }}
+  {{- $numStr := regexReplaceAll "^bowl_dispenser_([0-9]+)$" $bowlDispenser "$1" -}}
+  {{- $num := int $numStr }}
+  asset_id: {{ include "ipo.assetID" (list $ "bowl-dispenser" $num) | quote }}
+  {{- end }}
   component_name: {{ $dispenser.component_name | quote }}
   interface_type: {{ $dispenser.interface_type | default $.Values.configmap.bowl_dispenser_interface | quote -}}
   {{/* Specific for no compact-box */}}
