@@ -318,7 +318,11 @@ data:
       serving_conveyor_output:
         display_name: {{ .ipo.serving_conveyor_output.display_name | quote }}
         device_type: {{ .ipo.serving_conveyor_output.device_type | quote }}
-        asset_id: {{ .ipo.serving_conveyor_output.asset_id | quote }}
+        {{- if .ipo.serving_conveyor_output.asset_id }}
+          asset_id: {{ .ipo.serving_conveyor_output.asset_id | quote }}
+        {{- else }}
+          asset_id: {{ include "ipo.assetID" (list $ "SCO" "01") | quote }}
+        {{- end }}
         component_name: {{ .ipo.serving_conveyor_output.component_name | quote }}
         interface_type: {{ .ipo.serving_conveyor_output.interface_type | default $.Values.configmap.serving_conveyor_interface | quote }}
         state_machine:
