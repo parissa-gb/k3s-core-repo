@@ -170,8 +170,10 @@ data:
         {{- if .ipo.robot.device_type }}
         device_type: {{ .ipo.robot.device_type | quote }}
         {{- end }}
-        {{- if .ipo.robot.asset_id }}
-        asset_id: {{ .ipo.robot.asset_id | quote }}
+        {{- if include "exists" (list .ipo.robot "asset_id") }}
+          asset_id: {{ .ipo.robot.asset_id | quote }}
+        {{- else }}
+          asset_id: {{ include "ipo.assetID" (list $ "ipo-robot" "01") | quote }}
         {{- end }}
         {{- if .ipo.robot.component_name }}
         component_name: {{ .ipo.robot.component_name | quote }}
