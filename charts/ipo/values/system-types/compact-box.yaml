@@ -935,7 +935,7 @@ configmap:
         # enabled: true
         display_name: Bowl Dispenser 
         # device_type: BowlDispenserType
-        asset_id: GB-BD-BD007 ##**
+        asset_id: null
         component_name: Packaging Station I Slot P1 ##**
         # interface_type: GbCanIpo # GbActioCanOpenSsmDispenser , GbCanIpo, Simulation
         # has_bowl_gripper: false
