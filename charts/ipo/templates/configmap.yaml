@@ -255,7 +255,11 @@ data:
         display_name: {{ $shelf.display_name | quote }}
         device_type: {{ $shelf.device_type | quote }}
         interface_type: {{ $shelf.interface_type | default $.Values.configmap.pot_interface | quote }}
+        {{- if include "exists" (list $shelf "asset_id") }}
         asset_id: {{ $shelf.asset_id | quote }}
+        {{- else }}
+        asset_id: {{ include "ipo.assetID" (list $ $shelf.asset_id_component_name "01" ) | quote }}
+        {{- end }}
         component_name: {{ $shelf.component_name | quote }}
         can_id: {{ include "ipo.decimalToHex" $shelf.can_id }}
         pickup_strategy: {{ $shelf.pickup_strategy | quote }}

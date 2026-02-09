@@ -156,7 +156,7 @@ configmap:
       display_name: Box 1
       device_type: SelfServingBoxType
       # interface_type:  Simulation # Enable to override per box interface
-      asset_id: null
+      asset_id: GB-SSBv2-B019
       component_name: Box 1
       interface_config:
         can_node_id: 4
@@ -167,7 +167,7 @@ configmap:
     box2:
       enabled: true
       browse_name: ServingBoxA2
-      display_name: Box 2
+      display_name: GB-SSBv2-B020
       device_type: SelfServingBoxType
       # interface_type:  Simulation # Enable to override per box interface
       asset_id: null
@@ -785,7 +785,8 @@ configmap:
         display_name: Clean Pot Handover
         device_type: CleanPotTransferSystemType
         # interface_type: Simulation
-        asset_id: GB-IPO-PHv1-1.a
+        asset_id: null
+        asset_id_component_name: CPH
         component_name: Dirty Pot Handover Shelve
         can_id: 0x05
         pickup_strategy: NextInLine
@@ -823,7 +824,8 @@ configmap:
         display_name: Full Pot Handover
         device_type: DirtyPotTransferSystemType
         # interface_type: Simulation
-        asset_id: GB-IPO-PHv1-1.b
+        asset_id: null
+        asset_id_component_name: FPH
         component_name: Clean Pot Hanover Shelve
         can_id: 0x05
         pickup_strategy: NextInLine
@@ -849,7 +851,8 @@ configmap:
         display_name: Clean Pot Storage
         device_type: CleanPotTransferSystemType
         # interface_type: Simulation
-        asset_id: GB-IPO-CPSv1-1
+        asset_id: null
+        asset_id_component_name: CPS
         component_name: Clean Pot Strage Shelve
         can_id: 0x01
         pickup_strategy: NextInLine
@@ -894,7 +897,8 @@ configmap:
         display_name: Dirty Pot Storage
         device_type: CleanPotTransferSystemType
         # interface_type: Simulation
-        asset_id: GB-IPO-DPSv1-1
+        asset_id: null
+        asset_id_component_name: DPS
         component_name: Dirty Pot Storage Shelve
         can_id: 0x02
         pickup_strategy: NextInLine
