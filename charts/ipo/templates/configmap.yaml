@@ -67,7 +67,7 @@ data:
         {{- /* box2 -> 2, box12 -> 12, box300 -> 300 */ -}}
         {{- $numStr := regexReplaceAll "^box([0-9]+)$" $boxName "$1" -}}
         {{- $num := int $numStr}}
-      asset_id: {{ include "ipo.assetID" (list $ "box" $num) | quote }}
+      asset_id: {{ include "ipo.assetID" (list $ $boxConfig.asset_id_component_name $num) | quote }}
       {{- end }}
       {{- if hasKey $boxConfig "component_name" }}
       component_name: {{ $boxConfig.component_name }}
@@ -106,22 +106,24 @@ data:
 
     ipo:
       {{- if include "exists" (list .ipo "browse_name") }}
-      browse_name: {{ .ipo.browse_name | quote }}
+        browse_name: {{ .ipo.browse_name | quote }}
       {{- end }}
       {{- if include "exists" (list .ipo "display_name") }}
-      display_name: {{ .ipo.display_name | quote }}
+        display_name: {{ .ipo.display_name | quote }}
       {{- end }}
       {{- if include "exists" (list .ipo "device_type") }}
-      device_type: {{ .ipo.device_type | quote }}
+        device_type: {{ .ipo.device_type | quote }}
       {{- end }}
       {{- if include "exists" (list .ipo "asset_id") }}
-      asset_id: {{ .ipo.asset_id | quote }}
+        asset_id: {{ .ipo.asset_id | quote }}
+      {{- else }}
+        asset_id: {{ include "ipo.assetID" (list $ .ipo.asset_id_component_name "01") | quote }}
       {{- end }}
       {{- if include "exists" (list .ipo "component_name") }}
-      component_name: {{ .ipo.component_name | quote }}
+        component_name: {{ .ipo.component_name | quote }}
       {{- end }}
       {{- if include "exists" (list .ipo "serving_option") }}
-      serving_option: {{ .ipo.serving_option | quote }}
+        serving_option: {{ .ipo.serving_option | quote }}
       {{- end }}
       {{- if include "exists" (list .ipo "incoming_pot_pick_up_positions") }}
       incoming_pot_pick_up_positions:
@@ -173,7 +175,7 @@ data:
         {{- if include "exists" (list .ipo.robot "asset_id") }}
           asset_id: {{ .ipo.robot.asset_id | quote }}
         {{- else }}
-          asset_id: {{ include "ipo.assetID" (list $ "ipo-robot" "01") | quote }}
+          asset_id: {{ include "ipo.assetID" (list $ .ipo.robot.asset_id_component_name "01") | quote }}
         {{- end }}
         {{- if .ipo.robot.component_name }}
         component_name: {{ .ipo.robot.component_name | quote }}
@@ -321,7 +323,7 @@ data:
         {{- if .ipo.serving_conveyor_output.asset_id }}
           asset_id: {{ .ipo.serving_conveyor_output.asset_id | quote }}
         {{- else }}
-          asset_id: {{ include "ipo.assetID" (list $ "SCO" "01") | quote }}
+          asset_id: {{ include "ipo.assetID" (list $ .ipo.serving_conveyor_output.asset_id_component_name "01") | quote }}
         {{- end }}
         component_name: {{ .ipo.serving_conveyor_output.component_name | quote }}
         interface_type: {{ .ipo.serving_conveyor_output.interface_type | default $.Values.configmap.serving_conveyor_interface | quote }}

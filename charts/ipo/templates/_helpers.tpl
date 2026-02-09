@@ -166,7 +166,7 @@ affinity:
   {{- else }}
   {{- $numStr := regexReplaceAll "^bowl_dispenser_([0-9]+)$" $bowlDispenser "$1" -}}
   {{- $num := int $numStr }}
-  asset_id: {{ include "ipo.assetID" (list $ "BD" $num) | quote }}
+  asset_id: {{ include "ipo.assetID" (list $ $dispenser.asset_id_component_name $num) | quote }}
   {{- end }}
   component_name: {{ $dispenser.component_name | quote }}
   interface_type: {{ $dispenser.interface_type | default $.Values.configmap.bowl_dispenser_interface | quote -}}

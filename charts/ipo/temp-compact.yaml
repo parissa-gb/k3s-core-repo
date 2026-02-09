@@ -1,0 +1,630 @@
+---
+# Source: ipo/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ipo-01-config
+  namespace: goodbytz
+  labels:
+    helm.sh/chart: "ipo-0.1.0"
+    app.kubernetes.io/name: "ipo"
+    app.kubernetes.io/instance: "ipo-01"
+    app.kubernetes.io/version: "0.3.4"
+    app.kubernetes.io/managed-by: "Helm"
+data:
+  "ipo-config": |
+    server:
+      server_port: 4840
+      application_server_name: "IPO System Server"
+      build_info_software_version: "v0.0.1"
+      connector_namespace: "http://www.goodbytz.com/rka/ipo/"
+      plugins:
+        - souz_dishwasher
+        - souz_ipo
+        - souz_pour_out
+        - souz_robot
+        - souz_transfer
+
+    ipo:
+        browse_name: "IpoSystem"
+        display_name: "Pour Out and Output System"
+        device_type: "IntegratedPourOutAndOutputSystemType"
+        asset_id: "GB-IPO-RKA02-N0006-IPO-01"
+        component_name: "IPO"
+        serving_option: "back_of_house"
+      incoming_pot_pick_up_positions:
+        - Handover Slot D1
+        - Handover Slot D2
+      pot_handling:
+        bowl_needs_be_dispensed_before_pour_out: true
+
+      robot:
+        display_name: "IPO Robot"
+        browse_name: "IpoRobot"
+        device_type: "DishwasherRobotType"
+          asset_id: "GB-IPO-RKA02-N0006-ROBOT-01"
+        component_name: "IPO Robot"
+        interface_type: "Fanuc"
+        port: 30502
+        endpoint: 10.71.66.62
+        recovery_speed: 15
+        max_speed_override: 30
+        allowed_probing_positions:
+          - Dishwasher Slot 1
+          - Dishwasher Slot 2
+          - Dishwasher Slot 3
+          - Dishwasher Slot 4
+        home:
+          home1: # HOME
+            nominal: [0, -57.295, 11.459, 0, -11.459, 0]
+            max: [15, 10, 15, 15, 15, 15]
+            prog: "IPO_MOVE_HOME"
+
+        robot_prog_settings:
+          'IPO_MOVE_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'IPO_HOME_DW(\d)':
+            recovery: ["IPO_DW{0}_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'POT_UP_DW':
+            recovery: ["DW_HOME_IPO"]
+            safe_to_resume: true
+            safe_to_home_with_pot: true
+          'HOME_DIRTY_DISHWASHER_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'POT_UP_DIRTY':
+            recovery: ["DIRTY_HOME_IPO_POT"]
+            safe_to_resume: true
+            safe_to_home_with_pot: true
+          'IPO_DW0_DW(\d)':
+            recovery: ["IPO_DW{0}_HOME_POT"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'POT_DOWN_DW':
+            recovery: ["DW_HOME_IPO"]
+            safe_to_resume: true
+            safe_to_home_with_pot: true
+          'POT_FROM_HANDOVER_POUROUT_IPO':
+            recovery: ["IPO_POUROUT_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'POUROUT_IPO':
+            recovery: ["IPO_POUROUT_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'IPO_POUROUT_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'PROBE_FOR_POT':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'POT_PROBE_DW':
+            recovery: ["DW_HOME_IPO"]
+            safe_to_resume: true
+            safe_to_home_with_pot: true
+          'POT_TO_DISHWASHER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'POT_TO_DIRTY_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'POT_DOWN_DIRTY':
+            recovery: ["DIRTY_HOME_IPO"]
+            safe_to_resume: true
+            safe_to_home_with_pot: true
+          'POT_DOWN_CLEAN':
+            recovery: ["CLEAN_HOME_IPO"]
+            safe_to_resume: true
+            safe_to_home_with_pot: true
+          'POUROUT_DIRTY_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'POT_TO_HANDOVER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'POT_DOWN_HANDOVER':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'POT_FROM_HANDOVER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'POT_UP_HANDOVER':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: true
+          'POT_UP_CLEAN':
+            recovery: ["CLEAN_HOME_IPO"]
+            safe_to_resume: true
+            safe_to_home_with_pot: true
+          'DW_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'DIRTY_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'IPO_DW\d_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'POT_FROM_DISHWASHER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'IPO_DW(\d)_DW0':
+            recovery: ["IPO_DW0_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: true
+          'IPO_HOME_DIRTY([A,B]\d)':
+            recovery: ["IPO_DIRTY{0}_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'IPO_DIRTY([A,B]\d)_DW(\d)':
+            recovery: ["IPO_DW{1}_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'DW_UNLOAD_HANDOVER_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'IPO_DW\d_HOME_POT':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'IPO_HOME_HNDVR[A,B,C]\d':
+            recovery: ["IPO_MOVE_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'IPO_HOME_DIRTY([A,B]\d)_POT':
+            recovery: ["DIRTY_HOME_IPO"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'IPO_HOME_HNDVR(D\d)':
+            recovery: ["IPO_HNDVR{0}_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'IPO_HNDVR(D\d)_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'pot_to_clean_ipo':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+            max_ovrd: 80
+          'IPO_HOME_CLEAN_([A,B]\d)':
+            recovery: ["IPO_CLEAN_{0}_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'IPO_CLEAN_[A,B]\d_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'IPO_HNDVR(D\d)_POUROUT':
+            recovery: ["IPO_POUROUT_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'POUR_OUT_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'pot_from_clean_ipo':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+            max_ovrd: 80
+          'CLEAN_HOME_IPO':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'DIRTY_HOME_IPO_POT':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: false
+            safe_to_home_with_pot: false
+          'IPO_DIRTY([A,B]\d)_HOME':
+            recovery: ["ALREADY_HOME"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+          'IPO_POUROUT_DIRTY([A,B]\d)':
+            recovery: ["DIRTY_HOME_IPO"]
+            safe_to_resume: true
+            safe_to_home_with_pot: false
+        prog_result_codes:
+          DW_POT_PROBE_FREE: 3101
+          DW_POT_PROBE_OCCUPIED: 3100
+        frame_map:
+          clean:
+              Clean Pot Slot A1: 401
+              Clean Pot Slot A2: 402
+              Clean Pot Slot B1: 403
+              Clean Pot Slot B2: 404
+              Clean Pot Slot B3: 405
+          dirty:
+              Dirty Pot Slot A1: 301
+              Dirty Pot Slot A2: 302
+              Dirty Pot Slot B1: 303
+              Dirty Pot Slot B2: 304
+          dishwasher:
+              Dishwasher Slot 1: 21
+              Dishwasher Slot 2: 22
+              Dishwasher Slot 3: 23
+              Dishwasher Slot 4: 24
+          handover:
+              Handover Slot A1: 81
+              Handover Slot A2: 82
+              Handover Slot B1: 83
+              Handover Slot B2: 84
+              Handover Slot C1: 85
+              Handover Slot C2: 86
+              Handover Slot D1: 87
+              Handover Slot D2: 88
+      clean_pot_transfer:
+        display_name: "Clean Pot Handover"
+        device_type: "CleanPotTransferSystemType"
+        interface_type: "GbActioAsyncCanOpenPotShelve"
+        asset_id: "GB-IPO-RKA02-N0006-CPH-01"
+        component_name: "Dirty Pot Handover Shelve"
+        can_id: 0x05
+        pickup_strategy: "NextInLine"
+        receive_strategy: "FirstInLine"
+        blocking_check_interval: 1
+        slot_name_prefix: "Handover Slot"
+        prepare_to_receive:
+          enable_pot_position_return: true
+        prepare_for_pickup:
+          enable_pot_position_return: true
+        blocking: true
+        slots:
+          - name: "A1"
+            io_link: 1
+          - name: "A2"
+            io_link: 0
+          - name: "B1"
+            io_link: 3
+          - name: "B2"
+            io_link: 2
+          - name: "C1"
+            io_link: 5
+          - name: "C2"
+            io_link: 4
+      full_pot_transfer:
+        display_name: "Full Pot Handover"
+        device_type: "DirtyPotTransferSystemType"
+        interface_type: "GbActioAsyncCanOpenPotShelve"
+        asset_id: "GB-IPO-RKA02-N0006-FPH-01"
+        component_name: "Clean Pot Hanover Shelve"
+        can_id: 0x05
+        pickup_strategy: "NextInLine"
+        receive_strategy: "FirstInLine"
+        blocking_check_interval: 1
+        slot_name_prefix: "Handover Slot"
+        prepare_to_receive:
+          enable_pot_position_return: true
+        prepare_for_pickup:
+          enable_pot_position_return: true
+        blocking: true
+        slots:
+          - name: "D1"
+            io_link: 7
+          - name: "D2"
+            io_link: 6
+      clean_pot_storage:
+        display_name: "Clean Pot Storage"
+        device_type: "CleanPotTransferSystemType"
+        interface_type: "GbActioAsyncCanOpenPotShelve"
+        asset_id: "GB-IPO-RKA02-N0006-CPS-01"
+        component_name: "Clean Pot Strage Shelve"
+        can_id: 0x01
+        pickup_strategy: "NextInLine"
+        receive_strategy: "FirstInLine"
+        blocking_check_interval: 1
+        slot_name_prefix: "Clean Pot Slot"
+        prepare_to_receive:
+          enable_pot_position_return: true
+        prepare_for_pickup:
+          enable_pot_position_return: true
+        blocking: false
+        position_update_delay: 0.001
+        slots:
+          - name: "A1"
+            io_link: 0
+          - name: "A2"
+            io_link: 1
+          - name: "B1"
+            io_link: 2
+          - name: "B2"
+            io_link: 3
+          - name: "B3"
+            io_link: 4
+      dirty_pot_storage:
+        display_name: "Dirty Pot Storage"
+        device_type: "CleanPotTransferSystemType"
+        interface_type: "GbActioAsyncCanOpenPotShelve"
+        asset_id: "GB-IPO-RKA02-N0006-DPS-01"
+        component_name: "Dirty Pot Storage Shelve"
+        can_id: 0x02
+        pickup_strategy: "NextInLine"
+        receive_strategy: "FirstInLine"
+        blocking_check_interval: 1
+        slot_name_prefix: "Dirty Pot Slot"
+        prepare_to_receive:
+          enable_pot_position_return: true
+        prepare_for_pickup:
+          enable_pot_position_return: true
+        blocking: false
+        position_update_delay: 0.001
+        slots:
+          - name: "A1"
+            io_link: 2
+          - name: "A2"
+            io_link: 3
+          - name: "B1"
+            io_link: 1
+          - name: "B2"
+            io_link: 0
+      dishwasher:
+        endpoint: "opc.tcp://dishwasher.goodbytz.svc.cluster.local:4840"
+        skip_wash_when_resetting: false
+        t_auo_wash: 60
+        t_auto_close_hood: 0
+      
+      
+      bowl_dispenser_1:
+        display_name: "Bowl Dispenser 1"
+        device_type: "BowlDispenserType"
+        asset_id: "GB-IPO-RKA02-N0006-BD-01"
+        component_name: "Bowl Dispenser 1"
+        interface_type: "GbCanIpo"
+        has_bowl_gripper: false
+        has_conveyor: false
+        state_machine:
+          wait_for_refill_when_empty: false
+          bowl_buffer_count: 3
+          bowl_type_dispensed: "Paper"
+          refill_debounce_count: 4
+          refill_debounce_interval: 1.0
+          denesting_timeout: 16.0
+        bowl_type_dispensed: "Paper"
+        denester:
+          can_node_id: 1
+          target_speed: 10.0
+          bowl_type_dispensed: "Paper"
+          bowl_level_sensor:
+            parameter_index_name: "IO_EXPANDER_I6"
+            sensor_name: "are_bowls_loaded"
+          end_stop:
+            sensor_name: "bowl_below_denester"
+            parameter_index_name: "IO_EXPANDER_I7"
+            stop_delay: 0.0
+            trigger_edge_type: "FALLING"
+            inverted: false
+          stepper:
+            micro_steps: 2
+            gear_ratio: 1
+      bowl_dispenser_2:
+        display_name: "Bowl Dispenser 2"
+        device_type: "BowlDispenserType"
+        asset_id: "GB-IPO-RKA02-N0006-BD-02"
+        component_name: "Bowl Dispenser 2"
+        interface_type: "GbCanIpo"
+        has_bowl_gripper: false
+        has_conveyor: false
+        state_machine:
+          wait_for_refill_when_empty: false
+          bowl_buffer_count: 3
+          bowl_type_dispensed: "KeepIn"
+          refill_debounce_count: 4
+          refill_debounce_interval: 1.0
+          denesting_timeout: 16.0
+        bowl_type_dispensed: "KeepIn"
+        denester:
+          can_node_id: 2
+          target_speed: 10.0
+          bowl_type_dispensed: "KeepIn"
+          bowl_level_sensor:
+            parameter_index_name: "IO_EXPANDER_I6"
+            sensor_name: "are_bowls_loaded"
+          end_stop:
+            sensor_name: "bowl_below_denester"
+            parameter_index_name: "IO_EXPANDER_I7"
+            stop_delay: 0.0
+            trigger_edge_type: "FALLING"
+            inverted: false
+          stepper:
+            micro_steps: 2
+            gear_ratio: 1
+      serving_conveyor_output:
+        display_name: "Serving Conveyor 1"
+        device_type: "ServingConveyorOutputType"
+          asset_id: "GB-IPO-RKA02-N0006-SC-01"
+        component_name: 
+        interface_type: "GbCanIpo"
+        state_machine:
+          use_delay_to_move_bowl_to_output: false
+          delay_for_moving_bowl_to_output: 2.0
+          conveying_timeout_serving: 10.0
+        middle_conveyor:
+          name: "Middle Conveyor"
+          can_node_id: 5
+          motor_direction: false
+        conveyor_gate:
+          can_node_id: 4
+          target_speed: 5
+          target_position: 2.2
+          stepper:
+            invert_direction: true
+
+  ##### Logging Configuration #####
+
+  "logging-config": |
+
+    [loggers]
+    keys=root, main, asyncua, pymodbus, pymodbus_log, canopen, can
+    [handlers]
+    keys=consoleHandler
+    [formatters]
+    keys=simpleFormatter
+      
+    ## Logger Settings
+    [logger_root]
+    level=DEBUG
+    handlers=consoleHandler
+    
+    [logger_main]
+    level=DEBUG
+    handlers=consoleHandler
+    qualname=__main__
+    propagate=0
+    
+    [logger_asyncua]
+    level=INFO
+    handlers=consoleHandler
+    qualname=asyncua
+    propagate=0
+    
+    [logger_pymodbus]
+    level=ERROR
+    handlers=consoleHandler
+    qualname=pymodbus
+    propagate=0
+    
+    [logger_pymodbus_log]
+    level=ERROR
+    handlers=consoleHandler
+    qualname=pymodbus.logging
+    propagate=0
+    
+    [logger_canopen]
+    level=ERROR
+    handlers=consoleHandler
+    qualname=canopen
+    propagate=0
+    
+    [logger_can]
+    level=WARNING
+    handlers=consoleHandler
+    qualname=can
+    propagate=0
+    
+
+    ## Handler Settings
+    [handler_consoleHandler]
+    class=StreamHandler
+    level=DEBUG
+    formatter=simpleFormatter
+    args=(sys.stdout,)
+    
+
+    ## Formatter Settings
+    [formatter_simpleFormatter]
+    class=ecs_logging.StdlibFormatter
+---
+# Source: ipo/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ipo-connector
+  namespace: goodbytz
+  labels:
+    helm.sh/chart: "ipo-0.1.0"
+    app.kubernetes.io/name: "ipo"
+    app.kubernetes.io/instance: "ipo-01"
+    app.kubernetes.io/version: "0.3.4"
+    app.kubernetes.io/managed-by: "Helm"
+    type: hardware-connector
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/instance: "ipo-01"
+  ports:
+    - port: 4840
+      name: ipo-connector
+      targetPort: 4840
+      nodePort: 30319
+---
+# Source: ipo/templates/daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ipo-01
+  namespace: goodbytz
+  labels:
+    helm.sh/chart: "ipo-0.1.0"
+    app.kubernetes.io/name: "ipo"
+    app.kubernetes.io/instance: "ipo-01"
+    app.kubernetes.io/version: "0.3.4"
+    app.kubernetes.io/managed-by: "Helm"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: "ipo-01"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: "ipo-01"
+        app: ipo-connector
+        restart-group: group2
+      annotations:
+        co.elastic.logs/json.add_error_key: "true"
+        co.elastic.logs/json.expand_keys: "true"
+        co.elastic.logs/json.keys_under_root: "true"
+        co.elastic.logs/json.overwrite_keys: "true"
+    spec:
+      nodeSelector:
+        module_type: ipo
+      serviceAccountName: default
+      containers:
+        - name: ipo-01
+          image: ghcr.io/goodbytz/souz-ipo-connector:v0.3.4@sha256:a1defebf263892c7853a0c314906bd84a3b40b0bd5c1acb9ee480dcb026873dd
+          imagePullPolicy: IfNotPresent
+          securityContext: 
+            privileged: true
+          ports:
+            - name: ipo-port
+              containerPort: 4840
+              protocol: TCP
+          env:
+            - name: DEVICE_CONFIG
+              value: "/config/ipo-config.yaml"
+            - name: ENABLE_EVENT_HISTORY
+              value: "True"
+            - name: LOGGING_CONFIG_FILE
+              value: "/config/logging.conf"
+            - name: MQTT_BROKER
+              value: "mqtt-broker.goodbytz"
+            - name: UPDATED_EDS_IF_MISS_MATCH
+              value: "True"
+          volumeMounts:
+            - name: dev
+              mountPath: /dev
+            - name: config
+              mountPath: /config/
+      imagePullSecrets:
+        - name: dockerconfigjson-harbor
+      volumes:        
+        - name: "dev"
+          hostPath:
+            path: "/dev"
+          
+        - name: "config"
+          configMap:
+            name: ipo-01-config
+            items:
+              - key: "ipo-config"
+                path: "ipo-config.yaml"
+              - key: "logging-config"
+                path: "logging.conf"

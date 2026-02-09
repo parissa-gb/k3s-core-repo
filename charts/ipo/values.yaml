@@ -156,7 +156,8 @@ configmap:
       display_name: Box 1
       device_type: SelfServingBoxType
       # interface_type:  Simulation # Enable to override per box interface
-      asset_id: GB-SSBv2-B019
+      asset_id: null
+      asset_id_component_name: box
       component_name: Box 1
       interface_config:
         can_node_id: 4
@@ -171,6 +172,7 @@ configmap:
       device_type: SelfServingBoxType
       # interface_type:  Simulation # Enable to override per box interface
       asset_id: null
+      asset_id_component_name: box
       component_name: Box 2
       interface_config:
         can_node_id: 5
@@ -184,7 +186,8 @@ configmap:
       browse_name: ServingBoxB1
       device_type: SelfServingBoxType
       # interface_type:  Simulation # Enable to override per box interface
-      asset_id: GB-SSBv2-B020
+      asset_id: null
+      asset_id_component_name: box
       component_name: Box 3
       interface_config:
         can_node_id: 6
@@ -198,7 +201,8 @@ configmap:
       browse_name: ServingBoxB2
       device_type: SelfServingBoxType
       # interface_type: Simulation # Enable to override per box interface
-      asset_id: GB-SSB-B023
+      asset_id: null
+      asset_id_component_name: box
       component_name: Box 4
       interface_config:
         can_node_id: 7
@@ -211,7 +215,8 @@ configmap:
     browse_name: IpoSystem
     display_name: Pour Out and Output System
     device_type: IntegratedPourOutAndOutputSystemType
-    asset_id: GB-IPOv1-001
+    asset_id: null
+    asset_id_component_name: IPO
     component_name: IPO
     serving_option: back_of_house
     incoming_pot_pick_up_positions:
@@ -232,7 +237,8 @@ configmap:
       display_name: IPO Robot
       browse_name: IpoRobot
       device_type: DishwasherRobotType
-      asset_id: GB-ROB-R005
+      asset_id: null
+      asset_id_component_name: robot
       component_name: IPO Robot
       interface_type: "Fanuc"
       # interface_type: Simulation
@@ -941,6 +947,7 @@ configmap:
         display_name: Bowl Dispenser 1
         device_type: BowlDispenserType
         asset_id: null
+        asset_id_component_name: BD
         component_name: Bowl Dispenser 1
         # interface_type: GbCanIpo # GbActioCanOpenSsmDispenser , GbCanIpo, Simulation
         has_bowl_gripper: false
@@ -990,6 +997,7 @@ configmap:
         display_name: Bowl Dispenser 2
         device_type: BowlDispenserType
         asset_id: null
+        asset_id_component_name: BD
         component_name: Bowl Dispenser 2
         # interface_type: GbCanIpo
         # interface_type: Simulation
@@ -1022,8 +1030,8 @@ configmap:
       enabled: true
       display_name: Serving Conveyor 1
       device_type: ServingConveyorOutputType
-      asset_id: GB-Conveyor-C001
-      component_name: Serving Conveyor 1
+      asset_id: null
+      asset_id_component_name: SC
       # interface_type: Simulation
       state_machine:
         use_delay_to_move_bowl_to_output: False

@@ -182,7 +182,7 @@ configmap:
       browse_name: ServingBoxB1
       device_type: SelfServingBoxType
       # interface_type:  Simulation # Enable to override per box interface
-      asset_id: GB-SSBv2-B020
+      asset_id: null
       component_name: Box 3
       interface_config:
         can_node_id: 6
